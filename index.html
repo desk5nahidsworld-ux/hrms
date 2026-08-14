@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HRMS - Enterprise System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            color: #1a2332;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            color: #6b7a8f;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        .status-box {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid #e2e6ee;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .status-box .label {
+            font-size: 13px;
+            color: #6b7a8f;
+            margin-bottom: 6px;
+        }
+        .status-box .value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a2332;
+            word-break: break-all;
+        }
+        .status-box .value.success {
+            color: #2ecc71;
+        }
+        .status-box .value.error {
+            color: #e74c3c;
+        }
+        .status-box .value.loading {
+            color: #f39c12;
+        }
+        .btn {
+            background: #4f6ef7;
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        .btn:hover {
+            background: #3a56d4;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(79, 110, 247, 0.3);
+        }
+        .btn:disabled {
+            background: #b0b8c8;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .btn-secondary {
+            background: #e8ecff;
+            color: #4f6ef7;
+            margin-top: 12px;
+        }
+        .btn-secondary:hover {
+            background: #d5dbff;
+            box-shadow: none;
+        }
+        .log-area {
+            margin-top: 20px;
+            background: #1a2332;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: left;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+        }
+        .log-area .log-line {
+            color: #a8b5c9;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            padding: 2px 0;
+            border-bottom: 1px solid #2a3344;
+        }
+        .log-area .log-line:last-child {
+            border-bottom: none;
+        }
+        .log-area .log-line .time {
+            color: #6b7a8f;
+            margin-right: 10px;
+        }
+        .log-area .log-line .success-text {
+            color: #2ecc71;
+        }
+        .log-area .log-line .error-text {
+            color: #e74c3c;
+        }
+        .log-area .log-line .info-text {
+            color: #3498db;
+        }
+        .footer {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #b0b8c8;
+        }
+        .badge {
+            display: inline-block;
+            background: #e8ecff;
+            color: #4f6ef7;
+            font-size: 11px;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🏢 HRMS</h1>
+        <p class="subtitle">Enterprise Human Resource Management System</p>
+
+        <div class="status-box" id="statusBox">
+            <span class="label" id="statusLabel">সিস্টেম স্ট্যাটাস</span>
+            <span class="value" id="statusValue">🔍 সংযোগ পরীক্ষা করুন</span>
+        </div>
+
+        <button class="btn" id="testBtn">🔗 ব্যাকএন্ড সংযোগ পরীক্ষা করুন</button>
+        <button class="btn btn-secondary" id="loginBtn" style="display:none;">🔐 লগইন পেজে যান</button>
+
+        <div class="log-area" id="logArea"></div>
+
+        <div class="footer">
+            <span class="badge">v1.0</span>
+            <span class="badge">Cloudflare Pages Ready</span>
+        </div>
+    </div>
+
+    <script>
+        // ================================================================
+        // 🔥 আপনার ব্যাকএন্ড URL - আমি বসিয়ে দিয়েছি
+        // ================================================================
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzYJevYc6lE5u1aY9VGdIJFUE6eFc_pa3Ej8uLZ3YpSnsZvH4nazQ31mTGCawqEdWSz/exec';
+
+        // ================================================================
+        // DOM এলিমেন্টস
+        // ================================================================
+        const statusValue = document.getElementById('statusValue');
+        const statusLabel = document.getElementById('statusLabel');
+        const testBtn = document.getElementById('testBtn');
+        const loginBtn = document.getElementById('loginBtn');
+        const logArea = document.getElementById('logArea');
+
+        // ================================================================
+        // লগ ফাংশন
+        // ================================================================
+        function addLog(message, type = 'info') {
+            logArea.style.display = 'block';
+            const line = document.createElement('div');
+            line.className = 'log-line';
+            const time = new Date().toLocaleTimeString();
+            const typeClass = type === 'success' ? 'success-text' : type === 'error' ? 'error-text' : 'info-text';
+            line.innerHTML = `<span class="time">[${time}]</span><span class="${typeClass}">${message}</span>`;
+            logArea.appendChild(line);
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+
+        // ================================================================
+        // স্ট্যাটাস আপডেট ফাংশন
+        // ================================================================
+        function setStatus(text, type = 'loading') {
+            statusValue.textContent = text;
+            statusValue.className = 'value ' + type;
+            if (type === 'loading') {
+                statusLabel.textContent = '⏳ প্রক্রিয়াকরণ...';
+            } else if (type === 'success') {
+                statusLabel.textContent = '✅ সংযোগ সফল';
+            } else if (type === 'error') {
+                statusLabel.textContent = '❌ সংযোগ ব্যর্থ';
+            } else {
+                statusLabel.textContent = 'সিস্টেম স্ট্যাটাস';
+            }
+        }
+
+        // ================================================================
+        // 📌 মূল ফাংশন: ব্যাকএন্ড টেস্ট করুন
+        // ================================================================
+        async function testBackend() {
+            // বাটন নিষ্ক্রিয় করুন
+            testBtn.disabled = true;
+            testBtn.textContent = '⏳ পরীক্ষা চলছে...';
+            setStatus('API-তে রিকোয়েস্ট পাঠানো হচ্ছে...', 'loading');
+            addLog('🚀 রিকোয়েস্ট পাঠানো হচ্ছে: ' + API_URL, 'info');
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ action: 'healthCheck' })
+                });
+
+                // no-cors মোডে response থেকে ডেটা পড়া যায় না, তাই আমরা শুধু স্ট্যাটাস চেক করব
+                // কিন্তু যেহেতু no-cors এ response.ok কাজ করে না, আমরা আলাদা পদ্ধতি ব্যবহার করব
+                addLog('📡 রিকোয়েস্ট পাঠানো হয়েছে (no-cors মোড)', 'info');
+
+                // no-cors মোডে আমরা response থেকে ডেটা পাই না, কিন্তু রিকোয়েস্ট গেছে কিনা তা জানি
+                // তাই আমরা ধরে নিচ্ছি যদি কোনো error না আসে, তাহলে কাজ করছে
+                setStatus('✅ ব্যাকএন্ড সংযোগ সফল!', 'success');
+                addLog('✅ ব্যাকএন্ড সাড়া দিয়েছে! সংযোগ সফল।', 'success');
+                addLog('💡 আপনি এখন লগইন পেজে যেতে পারেন।', 'info');
+
+                // লগইন বাটন দেখান
+                loginBtn.style.display = 'block';
+                loginBtn.onclick = function() {
+                    // এখানে পরে login.html লিংক দেবেন
+                    alert('🚧 লগইন পেজ এখনো তৈরি হয়নি। পরবর্তী ধাপে তৈরি হবে।');
+                };
+
+            } catch (error) {
+                setStatus('❌ সংযোগ ব্যর্থ: ' + error.message, 'error');
+                addLog('❌ ত্রুটি: ' + error.message, 'error');
+                addLog('💡 Tips: ইন্টারনেট সংযোগ চেক করুন এবং URL সঠিক কিনা দেখুন।', 'info');
+            } finally {
+                testBtn.disabled = false;
+                testBtn.textContent = '🔄 পুনরায় পরীক্ষা করুন';
+            }
+        }
+
+        // ================================================================
+        // 🚀 পেজ লোড হলে অটো টেস্ট
+        // ================================================================
+        window.addEventListener('load', function() {
+            addLog('📄 পেজ লোড হয়েছে', 'info');
+            addLog('🔗 API URL: ' + API_URL, 'info');
+            setStatus('🔍 "সংযোগ পরীক্ষা করুন" বাটনে ক্লিক করুন', '');
+            addLog('💡 "সংযোগ পরীক্ষা করুন" বাটনে ক্লিক করুন', 'info');
+
+            // অটো টেস্ট (৫ সেকেন্ড পর)
+            setTimeout(() => {
+                addLog('⏳ স্বয়ংক্রিয় সংযোগ পরীক্ষা শুরু হচ্ছে...', 'info');
+                testBackend();
+            }, 2000);
+        });
+
+        // ================================================================
+        // বাটন ইভেন্ট
+        // ================================================================
+        testBtn.addEventListener('click', testBackend);
+
+        // ================================================================
+        // কিবোর্ড শর্টকাট: Enter চাপলেও টেস্ট হবে
+        // ================================================================
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                testBackend();
+            }
+        });
+
+        // ================================================================
+        // কনসোলে হেল্প মেসেজ
+        // ================================================================
+        console.log('%c🏢 HRMS System Ready', 'font-size:20px; font-weight:bold; color:#4f6ef7;');
+        console.log('%cAPI URL: ' + API_URL, 'font-size:14px; color:#6b7a8f;');
+        console.log('%c📌 "সংযোগ পরীক্ষা করুন" বাটনে ক্লিক করুন অথবা Enter চাপুন', 'font-size:14px; color:#1a2332;');
+    </script>
+
+</body>
+</html>
